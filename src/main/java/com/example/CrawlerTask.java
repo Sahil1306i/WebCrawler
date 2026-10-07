@@ -21,6 +21,8 @@ public class CrawlerTask implements Runnable{
         this.currentDepth = currentDepth;
         this.phaser = phaser;
     }
+
+
     @Override
     public void run(){
         try {
@@ -30,13 +32,16 @@ public class CrawlerTask implements Runnable{
 
             Set<String> links = urlFetcher.fetchLinks(url);
             for(String link:links){
-                if(urlStore.addUrl())
+                if(urlStore.addUrl(link)){
+                    phaser.register();
+                    WebCrawler.submitTask(urlStore, urlFetcher, currentDepth +1, maxDepth);
+                }
             }
 
         }catch (Exception e){
             System.out.println("Error!!");
         }finally {
-
+            phaser.arriveAndDeregister();
         }
     }
 }
